@@ -5,7 +5,7 @@ from app.auth import check_auth
 from app.scraping import busca_categoria
 
 nest_asyncio.apply()
-conf.get_default().auth_token = "SEU_TOKEN_NGROK_AQUI"
+conf.get_default().auth_token = "2w86MF5BVm8O9RW8royQKH2Gddq_3rzMRJDmqW8Tfyy5FxCPn"
 
 app = FastAPI(
     title="API Vitibrasil Embrapa",
