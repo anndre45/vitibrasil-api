@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+nest_asyncio
+pyngrok
+requests
+beautifulsoup4
