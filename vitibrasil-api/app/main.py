@@ -2,7 +2,7 @@ import nest_asyncio
 from pyngrok import conf, ngrok
 from fastapi import FastAPI, Depends, HTTPException
 from .auth import check_auth
-from app.scraping import busca_categoria
+from .scraping import busca_categoria
 
 nest_asyncio.apply()
 conf.get_default().auth_token = "2w86MF5BVm8O9RW8royQKH2Gddq_3rzMRJDmqW8Tfyy5FxCPn"
