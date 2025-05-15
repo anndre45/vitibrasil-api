@@ -1,7 +1,7 @@
 import nest_asyncio
 from pyngrok import conf, ngrok
 from fastapi import FastAPI, Depends, HTTPException
-from app.auth import check_auth
+from .auth import check_auth
 from app.scraping import busca_categoria
 
 nest_asyncio.apply()
