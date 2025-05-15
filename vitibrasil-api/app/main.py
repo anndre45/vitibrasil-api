@@ -1,11 +1,9 @@
 import nest_asyncio
-from pyngrok import conf, ngrok
 from fastapi import FastAPI, Depends, HTTPException
 from .auth import check_auth
 from .scraping import busca_categoria
 
 nest_asyncio.apply()
-conf.get_default().auth_token = "2w86MF5BVm8O9RW8royQKH2Gddq_3rzMRJDmqW8Tfyy5FxCPn"
 
 app = FastAPI(
     title="API Vitibrasil Embrapa",
@@ -26,17 +24,3 @@ def dados_por_categoria(categoria: str, ano: int):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
-
-for tunnel in ngrok.get_tunnels():
-    try:
-        ngrok.disconnect(tunnel.public_url)
-    except:
-        pass
-
-public_url = ngrok.connect(8000)
-print(f"Acesse sua API em: {public_url}/docs")
-
-import uvicorn
-import threading
-
-threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000)).start()
