@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+from app.database.init_db import DB_PATH
+import sqlite3
 
 def extrair_dados(session, url):
     dados = []
@@ -67,13 +69,33 @@ def busca_categoria(ano: int, categoria: str):
             url = f"http://vitibrasil.cnpuv.embrapa.br/index.php?ano={ano}&opcao={opcao}&subopcao={sub}"
             dados = extrair_dados(session, url)
             if dados:
-                chave = dados.pop("titulo", sub)
+                titulo = dados.pop("titulo", None)
+                chave = titulo if titulo and titulo.lower() != "total" else sub
                 resultado[chave] = dados["linhas"]
+
+                # Gravar no banco
+                with sqlite3.connect(DB_PATH) as conn:
+                    cursor = conn.cursor()
+                    for item in dados["linhas"]:
+                        cursor.execute(
+                            "INSERT INTO dados (ano, categoria, dado) VALUES (?, ?, ?)",
+                            (ano, categoria, str(item))
+                        )
     else:
         url = f"http://vitibrasil.cnpuv.embrapa.br/index.php?ano={ano}&opcao={opcao}"
         dados = extrair_dados(session, url)
         if dados:
-            chave = dados.pop("titulo", opcao)
+            titulo = dados.pop("titulo", None)
+            chave = titulo if titulo and titulo.lower() != "total" else opcao
             resultado[chave] = dados["linhas"]
+
+            # Gravar no banco
+            with sqlite3.connect(DB_PATH) as conn:
+                cursor = conn.cursor()
+                for item in dados["linhas"]:
+                    cursor.execute(
+                        "INSERT INTO dados (ano, categoria, dado) VALUES (?, ?, ?)",
+                        (ano, categoria, str(item))
+                    )
 
     return resultado
