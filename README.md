@@ -11,7 +11,6 @@ Ela realiza scraping automatizado dos dados de vitivinicultura do site da Embrap
 - Consulta de dados por categoria e ano
 - Web scraping com navegação por subopções
 - Retorno de dados em JSON estruturado
-- Deploy com link público via ngrok
 
 ---
 
