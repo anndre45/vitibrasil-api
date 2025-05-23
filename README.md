@@ -60,10 +60,9 @@ python app/main.py
 
 3. Acesse a documentação automática:
 ```
-http://localhost:8000/docs](https://vitibrasil-api-b7vo.onrender.com/docs
+https://vitibrasil-api-b7vo.onrender.com/docs
 ```
 
-Caso esteja usando o Colab com ngrok, o terminal exibirá um link público da API.
 
 ---
 
