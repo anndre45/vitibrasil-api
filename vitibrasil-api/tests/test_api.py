@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://vitibrasil-api-b7vo.onrender.com/docs"
 TOKEN = "teste"
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
