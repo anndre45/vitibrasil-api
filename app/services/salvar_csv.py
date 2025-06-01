@@ -2,14 +2,12 @@ import os
 import csv
 from pathlib import Path
 
-CACHE_DIR = Path("./cache_embrapa")
+CACHE_DIR = Path("./app/cache")
 CACHE_DIR.mkdir(exist_ok=True)
 
 def salvar_em_csv(nome_arquivo, dados_lista):
     if not dados_lista:
         return
-
-    # Cria conjunto com todas as colunas presentes
     colunas = set()
     for linha in dados_lista:
         colunas.update(linha.keys())
