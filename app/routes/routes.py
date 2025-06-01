@@ -11,8 +11,7 @@ def home():
 @router.get("/categoria/{categoria}/{ano}", dependencies=[Depends(check_auth)])
 def dados_por_categoria(categoria: str, ano: int):
     try:
-        dados = busca_categoria(ano, categoria)
-        return {"Ano": ano, "Categoria": categoria, "Dados": dados}
+        return busca_categoria(ano, categoria)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
