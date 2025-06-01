@@ -1,78 +1,80 @@
-import os
 import sqlite3
-from app.services.scraping import busca_categoria
+from pathlib import Path
+from ..services.salvar_csv import CACHE_DIR
+import csv
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_DIR = os.path.join(BASE_DIR, "../db")
-DB_PATH = os.path.join(DB_DIR, "embrapa.db")
+DB_PATH = Path(__file__).parent.parent / "db" / "embrapa.db"
 
-def conectar_db():
-    os.makedirs(DB_DIR, exist_ok=True)
+def get_connection():
     return sqlite3.connect(DB_PATH)
 
-def tabela_existe(conn, nome_tabela):
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (nome_tabela,))
-    return cursor.fetchone() is not None
+def extrair_ano_do_nome(categoria_nome):
+    try:
+        return int(categoria_nome.rsplit('_', 1)[-1])
+    except (ValueError, IndexError):
+        raise ValueError(f"Não foi possível extrair o ano de '{categoria_nome}'.")
+    
+def criar_tabela_se_nao_existir(conn, tabela, colunas_csv):
+    colunas = [col for col in colunas_csv if col not in {"id", "ano"}]
+    colunas_ddl = ["id INTEGER PRIMARY KEY AUTOINCREMENT", '"ano" INTEGER']
 
-def criar_tabela(conn, tabela, tem_valor=False, tem_subcategoria=False):
-    cursor = conn.cursor()
-    colunas = ["descricao TEXT", "quantidade TEXT"]
-    if tem_valor:
-        colunas.append("valor TEXT")
-    if tem_subcategoria:
-        colunas.append("subcategoria TEXT")
+    for c in colunas:
+        colunas_ddl.append(f'"{c}" TEXT')
 
-    cursor.execute(f"""
-        CREATE TABLE IF NOT EXISTS {tabela} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            {', '.join(colunas)}
-        );
-    """)
+    ddl = f'CREATE TABLE IF NOT EXISTS "{tabela}" ({", ".join(colunas_ddl)})'
+    conn.execute(ddl)
     conn.commit()
 
-def inserir_dados(conn, tabela, dados, subcategoria=None):
-    cursor = conn.cursor()
-    for item in dados:
-        descricao = item.get("Descrição")
-        quantidade = item.get("Quantidade")
-        valor = item.get("Valor", None)
-        if subcategoria:
-            cursor.execute(
-                f"INSERT INTO {tabela} (descricao, quantidade, valor, subcategoria) VALUES (?, ?, ?, ?)",
-                (descricao, quantidade, valor, subcategoria)
-            )
-        else:
-            cursor.execute(
-                f"INSERT INTO {tabela} (descricao, quantidade, valor) VALUES (?, ?, ?)",
-                (descricao, quantidade, valor)
-            )
+def inserir_dados(conn, categoria: str, dados: list, ano: int):
+    if not dados:
+        return
+
+    colunas = list(dados[0].keys())
+    if "ano" not in colunas:
+        colunas = ["ano"] + colunas
+
+    placeholders = ','.join('?' for _ in colunas)
+    cols_joined = ','.join(f'"{col}"' for col in colunas)
+    sql = f'INSERT INTO "{categoria}" ({cols_joined}) VALUES ({placeholders})'
+
+    to_insert = []
+    for row in dados:
+        vals = []
+        for col in colunas:
+            if col == "ano":
+                vals.append(ano)
+            else:
+                vals.append(row.get(col, None))
+        to_insert.append(vals)
+
+    conn.executemany(sql, to_insert)
     conn.commit()
 
-def verificar_ou_criar(categoria: str, ano: int):
-    tabela = categoria.lower().replace("ç", "c").replace("ã", "a").replace("é", "e").replace(" ", "_")
+def carregar_csv_para_db(nome: str):
+    """
+    Recebe o nome no formato "Categoria_Ano", por exemplo: "Processamento_2017",
+    localiza o CSV e carrega os dados para o banco.
+    """
+    try:
+        ano = extrair_ano_do_nome(nome)
+    except ValueError as e:
+        raise ValueError(str(e))
 
-    conn = conectar_db()
-    if tabela_existe(conn, tabela):
+    arquivo = CACHE_DIR / f"{nome}.csv"
+    if not arquivo.exists():
+        raise FileNotFoundError(f"Arquivo CSV não encontrado: {arquivo}")
+
+    with open(arquivo, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        dados = list(reader)
+        if not dados:
+            raise ValueError("CSV vazio")
+
+        colunas = reader.fieldnames or []
+
+    conn = get_connection()
+    try:
+        criar_tabela_se_nao_existir(conn, nome.split('_')[0], colunas)
+        inserir_dados(conn, nome.split('_')[0], dados, ano)
+    finally:
         conn.close()
-        return f"Tabela '{tabela}' já existe."
-
-    dados = busca_categoria(ano, categoria)
-
-    tem_valor = any(
-        "Valor" in item
-        for linhas in dados.values()
-        for item in linhas
-    )
-    tem_subcategoria = len(dados) > 1
-
-    # Cria tabela com colunas certas
-    criar_tabela(conn, tabela, tem_valor=tem_valor, tem_subcategoria=tem_subcategoria)
-
-    # Insere dados
-    for chave, linhas in dados.items():
-        inserir_dados(conn, tabela, linhas, subcategoria=chave if tem_subcategoria else None)
-
-    conn.close()
-    return f"Tabela '{tabela}' criada com sucesso."
-

@@ -29,14 +29,11 @@ def extrair_dados(session, url, subopt_nome=None):
                 nome = th.text.strip()
                 nomes_colunas.append(nome)
         else:
-            # fallback se não tiver cabeçalho
             nomes_colunas = ["Coluna" + str(i+1) for i in range(len(tabela.find_all("tr")[1].find_all("td"))) ]
 
-        # Adiciona a coluna "SubOpt" se houver nome de subopção
         if subopt_nome and "SubOpt" not in nomes_colunas:
             nomes_colunas.append("SubOpt")
 
-        # Percorre as linhas da tabela (ignora cabeçalho)
         for linha in tabela.find_all("tr")[1:]:
             colunas = linha.find_all("td")
             if len(colunas) == 0:
@@ -48,17 +45,14 @@ def extrair_dados(session, url, subopt_nome=None):
                 else:
                     chave = f"Coluna_{idx+1}"
                 item[chave] = coluna.text.strip()
-            # Adiciona id incremental único
             item["id"] = linha_id
             linha_id += 1
 
-            # Se for subopt, adiciona o nome na coluna SubOpt
             if subopt_nome:
                 item["SubOpt"] = subopt_nome
 
             dados.append(item)
 
-        # Verifica próxima página (paginação)
         proximo = soup.find("a", text="»")
         if proximo and 'href' in proximo.attrs:
             pagina_url = "http://vitibrasil.cnpuv.embrapa.br/" + proximo['href']
@@ -69,12 +63,11 @@ def extrair_dados(session, url, subopt_nome=None):
 
 
 def busca_categoria(ano: int, categoria: str):
+    
     nome_arquivo = CACHE_DIR / f"{categoria}_{ano}.csv"
     
-    # Verifica se o CSV cache existe e carrega
     dados_cache = carregar_de_csv(nome_arquivo)
     if dados_cache:
-        # Pode converter os ids para int, por exemplo, se quiser
         for linha in dados_cache:
             if "id" in linha:
                 linha["id"] = int(linha["id"])
@@ -84,7 +77,6 @@ def busca_categoria(ano: int, categoria: str):
             "Dados": dados_cache
         }
 
-    # Se não tem cache, faz scraping
     headers = {"User-Agent": "Mozilla/5.0"}
     session = requests.Session()
     session.headers.update(headers)
@@ -97,12 +89,6 @@ def busca_categoria(ano: int, categoria: str):
         "Exportação": "opt_06"
     }
 
-    opcoes_com_sub = {
-        "opt_03": 4,
-        "opt_05": 5,
-        "opt_06": 4
-    }
-
     opcao = nomes_opcoes.get(categoria)
     if not opcao:
         raise ValueError("Categoria inválida")
@@ -110,29 +96,33 @@ def busca_categoria(ano: int, categoria: str):
     dados_unificados = []
     contador_id = 1
 
-    if opcao in opcoes_com_sub:
-        for i in range(1, opcoes_com_sub[opcao] + 1):
-            sub = f"subopt_{i:02d}"
-            url = f"http://vitibrasil.cnpuv.embrapa.br/index.php?ano={ano}&opcao={opcao}&subopcao={sub}"
-            dados = extrair_dados(session, url)
-            if dados:
-                linhas = dados.get("linhas", [])
+    url_base = f"http://vitibrasil.cnpuv.embrapa.br/index.php?ano={ano}&opcao={opcao}"
+    resp = session.get(url_base, timeout=10)
+    resp.encoding = 'utf-8'
+    soup = BeautifulSoup(resp.text, 'html.parser')
+
+    botoes = soup.find_all("button", class_="btn_sopt")
+    subopcoes = [(btn["value"], btn.text.strip()) for btn in botoes]
+
+    if subopcoes:
+        for sub_val, sub_nome in subopcoes:
+            url = f"http://vitibrasil.cnpuv.embrapa.br/index.php?ano={ano}&opcao={opcao}&subopcao={sub_val}"
+            linhas = extrair_dados(session, url, subopt_nome=sub_nome)
+            if linhas:
                 for linha in linhas:
                     linha["id"] = contador_id
                     contador_id += 1
                     dados_unificados.append(linha)
     else:
-        url = f"http://vitibrasil.cnpuv.embrapa.br/index.php?ano={ano}&opcao={opcao}"
-        dados = extrair_dados(session, url)
-        if dados:
-            linhas = dados.get("linhas", [])
+        linhas = extrair_dados(session, url_base, subopt_nome=None)
+        if linhas:
             for linha in linhas:
                 linha["id"] = contador_id
                 contador_id += 1
-                linha["SubOpt"] = categoria
+                if "SubOpt" not in linha:
+                    linha["SubOpt"] = categoria
                 dados_unificados.append(linha)
 
-    # Salva no CSV cache após scraping
     salvar_em_csv(nome_arquivo, dados_unificados)
 
     return {
@@ -140,4 +130,5 @@ def busca_categoria(ano: int, categoria: str):
         "Categoria": categoria,
         "Dados": dados_unificados
     }
+
 
