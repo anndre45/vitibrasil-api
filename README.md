@@ -9,8 +9,10 @@ Ela realiza scraping automatizado dos dados de vitivinicultura do site da Embrap
 
 - Rota de autenticação via token Bearer
 - Consulta de dados por categoria e ano
+- Cache de dados via csv com timer de limpeza de 30 minutos
 - Web scraping com navegação por subopções
 - Retorno de dados em JSON estruturado
+- Carregamento de dados em DB (SQLite3)
 
 ---
 
@@ -38,15 +40,18 @@ Um exemplo prático seria o desenvolvimento de um modelo para prever a produçã
    [Scraping com BeautifulSoup]
             |
             v
-[Site da Embrapa (vitibrasil.cnpuv)]
+[Site da Embrapa (vitibrasil.cnpuv)] <-> Caching em CSV
             |
             v
- [Retorno estruturado (JSON)]
+ [Retorno estruturado (JSON)]  
+            |
+            v
+ [Carregamento de dados em DB]
 ```
 
 ---
 
-## ▶️ Como rodar o projeto
+## ▶️ Como rodar o projeto localmente
 
 1. Instale as dependências:
 ```bash
@@ -55,15 +60,19 @@ pip install -r requirements.txt
 
 2. Rode a API:
 ```bash
-python app/main.py
+uvicorn main:app --reload 
 ```
 
 3. Acesse a documentação automática:
 ```
-https://vitibrasil-api-b7vo.onrender.com/docs
+127.0.0.1:8000/docs
 ```
 
+## ▶️ Acesse a API diretamente
 
+```
+https://vitibrasil-api-b7vo.onrender.com/docs
+```
 ---
 
 ## 🔐 Autenticação
