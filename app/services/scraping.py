@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from ..services.salvar_csv import salvar_em_csv, CACHE_DIR, carregar_de_csv
-
+from ..utils.cache import agendar_exclusao_arquivo
 def extrair_dados(session, url, subopt_nome=None):
     dados = []
     pagina_url = url
@@ -16,7 +16,6 @@ def extrair_dados(session, url, subopt_nome=None):
         if not tabela:
             return None
 
-        # Extrai os nomes das colunas do cabeçalho da tabela
         thead = tabela.find("thead")
         if thead:
             cabecalho = thead.find("tr")
@@ -58,9 +57,7 @@ def extrair_dados(session, url, subopt_nome=None):
             pagina_url = "http://vitibrasil.cnpuv.embrapa.br/" + proximo['href']
         else:
             break
-
     return dados
-
 
 def busca_categoria(ano: int, categoria: str):
     
@@ -124,6 +121,7 @@ def busca_categoria(ano: int, categoria: str):
                 dados_unificados.append(linha)
 
     salvar_em_csv(nome_arquivo, dados_unificados)
+    agendar_exclusao_arquivo(nome_arquivo, delay_segundos=1800) 
 
     return {
         "Ano": ano,
