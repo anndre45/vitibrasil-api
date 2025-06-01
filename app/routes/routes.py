@@ -18,7 +18,7 @@ def dados_por_categoria(categoria: str, ano: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
 
-@router.post("/carregar/{categoria}/{ano}")
+@router.post("/carregar/{categoria}/{ano}", dependencies=[Depends(check_auth)])
 def carregar_csv(categoria: str, ano: int):
     nome_arquivo = f"{categoria}_{ano}"
     try:
