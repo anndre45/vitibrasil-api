@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..services.scraping import busca_categoria
+from ..utils.auth import check_auth
 
 router = APIRouter()
 
