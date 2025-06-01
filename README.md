@@ -115,12 +115,25 @@ Retorno (exemplo):
 ## 📁 Estrutura de pastas
 
 ```
-vitibrasil-api/
+vitibrasil_api/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── scraping.py
-│   └── auth.py
+│   ├── core/
+|   |     ├── __init__.py
+|   |     ├── app.py
+│   ├── routes/
+|   |     ├── main.py
+|   |     ├── routes.py
+|   ├── services/
+|   |     ├── __init__.py
+|   |     ├── databases.py
+|   |     ├── scraping.py
+|   ├── tests/
+|   |     ├── test_api.py
+|   ├── utils/
+|   |     ├── __init__.py
+|   |     ├── auth.py
+|   ├── __init__.py
+├── main.py
 ├── requirements.txt
 ├── README.md
 └── .gitignore
