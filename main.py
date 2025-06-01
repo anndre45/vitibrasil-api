@@ -1,9 +1,8 @@
-import nest_asyncio
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from .app.utils.auth import check_auth
-from .app.scraping.scraping import busca_categoria
+from .app.services.scraping import busca_categoria
 
-nest_asyncio.apply()
+from .app.routes import routes
 
 app = FastAPI(
     title="API Vitibrasil Embrapa",
@@ -11,16 +10,5 @@ app = FastAPI(
     version="1.0.0"
 )
 
-@app.get("/")
-def home():
-    return {"mensagem": "API online! Consulte /docs para documentação."}
-
-@app.get("/categoria/{categoria}/{ano}", dependencies=[Depends(check_auth)])
-def dados_por_categoria(categoria: str, ano: int):
-    try:
-        dados = busca_categoria(ano, categoria)
-        return {"Ano": ano, "Categoria": categoria, "Dados": dados}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+if __name__ == '__main__':
+    app.run(debug=True)
