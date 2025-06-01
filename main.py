@@ -1,7 +1,7 @@
 import nest_asyncio
 from fastapi import FastAPI, Depends, HTTPException
-from .auth import check_auth
-from .scraping import busca_categoria
+from .app.utils.auth import check_auth
+from .app.scraping.scraping import busca_categoria
 
 nest_asyncio.apply()
 
