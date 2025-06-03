@@ -126,21 +126,22 @@ Retorno (exemplo):
 ```
 vitibrasil_api/
 ├── app/
-│   ├── routes/
+│   ├── routes/               # Rotas da API
 |   |     ├── main.py
 |   |     ├── routes.py
-|   ├── services/
+|   ├── services/             # Funções para Scraping e Banco de Dados
 |   |     ├── __init__.py
 |   |     ├── databases.py
 |   |     ├── scraping.py
-|   ├── tests/
+|   ├── tests/                # Testes
 |   |     ├── test_api.py
-|   ├── utils/
+|   ├── utils/                # Autenticação
 |   |     ├── __init__.py
 |   |     ├── auth.py
 |   ├── __init__.py
-├── main.py
-├── requirements.txt
+├── main.py                   # Inicialização da API
+├── requirements.txt          # Dependencias do projeto
 ├── README.md
+├── render.yaml               # Blueprint para deploy
 └── .gitignore
 ```
