@@ -7,6 +7,9 @@ router = APIRouter()
 
 @router.get("/")
 def home():
+    """
+    Retorna apenas uma mensagem de confirmação de conexão com a API.
+    """
     return {"mensagem": "API online! Consulte /docs para documentação."}
 
 @router.get("/categoria/{categoria}/{ano}", dependencies=[Depends(check_auth)])
@@ -29,7 +32,16 @@ def dados_por_categoria(categoria: str, ano: int):
 @router.post("/carregar/{categoria}/{ano}", dependencies=[Depends(check_auth)])
 def guardar_no_banco(categoria: str, ano: int):
     """
-    Reconhece o arquivo em cache pesquisado e então armazena o dado no banco.
+    1 - Reconhece o arquivo em cache pesquisado.
+    ___
+    2 - Verifica se a tabela já existe para decidir criá-la ou não.
+    ___
+    3 - Empilha os dados na tabela já criada, ou cria a tabela não existente antes de fazer o append.
+    __
+    Estrutura da tabela:
+    - Nome: Categoria
+    __
+    ID | Ano | Colunas do Scraping | SubOpt (Caso exista)
     """
     nome_arquivo = f"{categoria}_{ano}"
     try:
