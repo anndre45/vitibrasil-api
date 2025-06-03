@@ -11,6 +11,14 @@ def home():
 
 @router.get("/categoria/{categoria}/{ano}", dependencies=[Depends(check_auth)])
 def dados_por_categoria(categoria: str, ano: int):
+    """
+    Pesquisa pela categoria e ano específica retornando os dados direto da fonte.
+    Salva a consulta em cache no formato .CSV
+    ___
+
+    Fallback:
+    Evitando sobrecarga na fonte, a rota procura primeiro se já não tem a pesquisa salva em cache antes de ir até o site da Embrapa.
+    """
     try:
         return busca_categoria(ano, categoria)
     except ValueError as e:
@@ -19,7 +27,10 @@ def dados_por_categoria(categoria: str, ano: int):
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
 
 @router.post("/carregar/{categoria}/{ano}", dependencies=[Depends(check_auth)])
-def carregar_csv(categoria: str, ano: int):
+def guardar_no_banco(categoria: str, ano: int):
+    """
+    Reconhece o arquivo em cache pesquisado e então armazena o dado no banco.
+    """
     nome_arquivo = f"{categoria}_{ano}"
     try:
         carregar_csv_para_db(nome_arquivo)
