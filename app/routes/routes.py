@@ -37,11 +37,11 @@ def guardar_no_banco(categoria: str, ano: int):
     2 - Verifica se a tabela já existe para decidir criá-la ou não.
     ___
     3 - Empilha os dados na tabela já criada, ou cria a tabela não existente antes de fazer o append.
-    __
+    ___
     Estrutura da tabela:
     - Nome: Categoria
-    __
-    ID | Ano | Colunas do Scraping | SubOpt (Caso exista)
+    ___
+    - ID | Ano | Colunas do Scraping | SubOpt (Caso exista)
     """
     nome_arquivo = f"{categoria}_{ano}"
     try:
