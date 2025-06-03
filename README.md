@@ -126,9 +126,6 @@ Retorno (exemplo):
 ```
 vitibrasil_api/
 ├── app/
-│   ├── core/
-|   |     ├── __init__.py
-|   |     ├── app.py
 │   ├── routes/
 |   |     ├── main.py
 |   |     ├── routes.py
